@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:loading_animations/loading_animations.dart';
 
 void main() {
   runApp(MyApp());
@@ -50,7 +53,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
- 
+  StreamController<int> routerQueue = StreamController<int>();
 
   @override
   Widget build(BuildContext context) {
@@ -60,13 +63,84 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    routerQueue.add(1);
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: null // This trailing comma makes auto-formatting nicer for build methods.
+      body: scaffoldBody() // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+
+  Widget scaffoldBody() {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(15),
+          child: widgetRouter(),
+        ),
+        mainWidget()
+      ],
+    );
+  }
+
+  Widget widgetRouter() {
+    
+    final genIndex = () {
+      var res = List<Widget>();
+
+      for(var i in [1,2,3,4]) {
+        
+        res.add(
+          Expanded(
+            child: OutlineButton(
+              child:Text(i.toString()),
+              onPressed: (){routerQueue.add(i);}
+            )
+          )
+        );
+      }
+      
+      return res;
+    };
+
+    
+    return Row(
+      children: genIndex(),
+    );
+  }
+
+  Widget mainWidget() {
+    return StreamBuilder(
+      stream : this.routerQueue.stream,
+      builder: (context,AsyncSnapshot<int> snapshot) {
+        //first init time, snapshot is null,first stream add function 1, before wait loading widget
+        Widget view = LoadingRotating.square(
+          borderColor: Colors.blueGrey,
+          borderSize: 3,
+          size : 30,
+          duration: Duration(milliseconds: 500),
+        );
+
+        switch(snapshot.data) {
+          case 1:
+            view = Text(snapshot.data.toString());
+            break;
+          case 2:
+            view = Text(snapshot.data.toString());
+            break;
+          case 3:
+            view = Text(snapshot.data.toString());
+            break;
+          case 4:
+            view = Text(snapshot.data.toString());
+            break;
+        }
+        return view;
+      }
     );
   }
 }
