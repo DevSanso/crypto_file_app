@@ -37,8 +37,9 @@ class Loading extends StatelessWidget {
 
 
   Widget textBox() {
-    return StreamBuilder(builder: 
-      (context,AsyncSnapshot<String> snapshot) => Text(
+    return StreamBuilder(
+      stream: messageQueue,
+      builder: (context,AsyncSnapshot<String> snapshot) => Text(
         snapshot.data
       )
     );
