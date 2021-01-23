@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:loading_animations/loading_animations.dart';
 
-void main() {
-  runApp(MyApp());
-}
+import 'view/intro.dart';
+
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -127,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         switch(snapshot.data) {
           case 1:
-            view = Text(snapshot.data.toString());
+            view = Intro.setRouter(this.routerQueue);
             break;
           case 2:
             view = Text(snapshot.data.toString());
