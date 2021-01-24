@@ -24,10 +24,15 @@ class _IntroState extends State<Intro> {
       children: 
       [
         Container(
-          padding: EdgeInsets.all(30),
+          padding: EdgeInsets.only(top:100),
           child: _setActionbtn(),
+          width : 330,
+          height : 330,
         ),
-        _nextBtn()
+        Container(
+          padding: EdgeInsets.only(top: 60),
+          child:_nextBtn()
+        )
       ],);
   }
 
@@ -41,9 +46,9 @@ class _IntroState extends State<Intro> {
       },
       child: () {
         if(config.isEncode()) {
-          return Text("Encode");
+          return Text("Encode",style: TextStyle(fontSize: 28));
         }else {
-          return Text("Decode");
+          return Text("Decode",style: TextStyle(fontSize: 28));
         }
       }(),
       shape: CircleBorder(

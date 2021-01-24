@@ -79,14 +79,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.all(15),
+          padding: EdgeInsets.all(10),
           child: widgetRouter(),
         ),
-        mainWidget()
+        mainWidget(),
+       
       ],
     );
   }
-
+ 
   Widget widgetRouter() {
     
     final genIndex = () {
