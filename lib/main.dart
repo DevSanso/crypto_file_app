@@ -1,9 +1,11 @@
 import 'dart:async';
 
+
 import 'package:flutter/material.dart';
 import 'package:loading_animations/loading_animations.dart';
 
 import 'view/intro.dart';
+import 'view/crypto_set.dart';
 
 void main() => runApp(MyApp());
 
@@ -131,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
             view = Intro.setRouter(this.routerQueue);
             break;
           case 2:
-            view = Text(snapshot.data.toString());
+            view = CryptoSetView(this.routerQueue);
             break;
           case 3:
             view = Text(snapshot.data.toString());
