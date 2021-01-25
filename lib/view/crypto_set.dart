@@ -25,6 +25,15 @@ class CryptoSetViewState extends State<CryptoSetView> {
     else
       return "Aes CBC";
   }
+  String hashPanelName() {
+    var mode = AppConfig.config.hash;
+    if(AppConfig.KeyHash.SHA1 == mode)
+      return "sha1";
+    else if(AppConfig.KeyHash.SHA256 == mode)
+      return "sha256";
+    else
+      return "md5";
+  }
 
 
   @override
@@ -40,11 +49,13 @@ class CryptoSetViewState extends State<CryptoSetView> {
       expansionCallback: (int index,bool isExpaned) {
         setState((){
           _selectExpaned[index] =  !_selectExpaned[index];
+          
         });
       },
       children: 
       [
         _selectCrypto(),
+        _selectPasswdHash()
       ]
     );
   }
@@ -100,7 +111,53 @@ class CryptoSetViewState extends State<CryptoSetView> {
   }
     
   ExpansionPanel _selectPasswdHash() {
-    return null;
+    return ExpansionPanel(
+      headerBuilder: (BuildContext context,bool isExpaned) {
+        return ListTile(title : Text("Passwd Hash: ${hashPanelName()}"));
+      },
+      isExpanded: _selectExpaned[1],
+      body : Column(
+        children: [
+          ListTile(
+            title: const Text('MD5'),
+            leading: Radio(
+              value:  AppConfig.KeyHash.MD5,
+              groupValue: AppConfig.config.hash,
+              onChanged: (AppConfig.KeyHash value) {
+                setState(() {
+                  AppConfig.config.hash = value;
+                });
+              },
+            ),
+            
+          ),
+          ListTile(
+            title: const Text('SHA1'),
+            leading: Radio(
+              value:  AppConfig.KeyHash.SHA1,
+              groupValue: AppConfig.config.hash,
+              onChanged: (AppConfig.KeyHash value) {
+                setState(() {
+                  AppConfig.config.hash = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('SHA256'),
+            leading: Radio(
+              value:  AppConfig.KeyHash.SHA256,
+              groupValue: AppConfig.config.hash,
+              onChanged: (AppConfig.KeyHash value) {
+                setState(() {
+                  AppConfig.config.hash = value;
+                });
+              },
+            ),
+          )
+        ],
+      )
+    );
   }
   Widget _nextBtn() {
     return RaisedButton(

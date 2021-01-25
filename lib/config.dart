@@ -36,8 +36,8 @@ class _Config {
   String srcFilePath;
   String dstFilePath;
 
-  KeyHash hash;
-  CryptoMode mode;
+  KeyHash hash =  KeyHash.SHA256;
+  CryptoMode mode = CryptoMode.AES_GCM;
 
   String key;
 
