@@ -4,7 +4,7 @@ import 'package:loading_animations/loading_animations.dart';
 
 
 import './init/intro.dart';
-
+import './init/crypto_set.dart';
 
 
 class InitView extends StatefulWidget {
@@ -75,7 +75,7 @@ class _InitState extends State<InitView> {
             view = Intro.setRouter(widget.routerQueue);
             break;
           case 2:
-            view = Text(snapshot.data.toString());
+            view = CryptoSetView(widget.routerQueue);
             break;
           case 3:
             view = Text(snapshot.data.toString());
