@@ -1,11 +1,3 @@
-
-
-enum KeyHash {
-  SHA256,
-  SHA1,
-  MD5
-}
-
 enum CryptoMode {
   AES_CBC,
   AES_CTR,
@@ -36,7 +28,7 @@ class _Config {
   String srcFilePath;
   String dstFilePath;
 
-  KeyHash hash =  KeyHash.SHA256;
+  
   CryptoMode mode = CryptoMode.AES_GCM;
 
   String key;

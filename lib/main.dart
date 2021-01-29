@@ -1,12 +1,10 @@
 import 'dart:async';
-
-
 import 'package:flutter/material.dart';
-import 'package:loading_animations/loading_animations.dart';
 
-import 'view/intro.dart';
-import 'view/crypto_set.dart';
 
+import './view/init.dart';
+
+import './var/switch.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -49,13 +47,14 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
+  
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  StreamController<int> routerQueue = StreamController<int>();
+  
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    routerQueue.add(1);
+    
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -76,74 +75,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-
   Widget scaffoldBody() {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(10),
-          child: widgetRouter(),
-        ),
-        mainWidget(),
-       
-      ],
-    );
-  }
- 
-  Widget widgetRouter() {
-    
-    final genIndex = () {
-      var res = List<Widget>();
-
-      for(var i in [1,2,3,4]) {
-        
-        res.add(
-          Expanded(
-            child: OutlineButton(
-              child:Text(i.toString()),
-              onPressed: (){routerQueue.add(i);}
-            )
-          )
-        );
+    return StreamBuilder(stream: sswitch.stream,
+    builder: (context,AsyncSnapshot<MainScreen> snapshot){
+      if(snapshot.data == MainScreen.Init) {
+        return InitView();
       }
-      
-      return res;
-    };
-
-    
-    return Row(
-      children: genIndex(),
-    );
-  }
-
-  Widget mainWidget() {
-    return StreamBuilder(
-      stream : this.routerQueue.stream,
-      builder: (context,AsyncSnapshot<int> snapshot) {
-        //first init time, snapshot is null,first stream add function 1, before wait loading widget
-        Widget view = LoadingRotating.square(
-          borderColor: Colors.blueGrey,
-          borderSize: 3,
-          size : 30,
-          duration: Duration(milliseconds: 500),
-        );
-
-        switch(snapshot.data) {
-          case 1:
-            view = Intro.setRouter(this.routerQueue);
-            break;
-          case 2:
-            view = CryptoSetView(this.routerQueue);
-            break;
-          case 3:
-            view = Text(snapshot.data.toString());
-            break;
-          case 4:
-            view = Text(snapshot.data.toString());
-            break;
-        }
-        return view;
+      else {
+        return null;
       }
-    );
+    });
   }
 }

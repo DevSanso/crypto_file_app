@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../config.dart' show config;
+import '../../var/config.dart' show config;
 
 
 
