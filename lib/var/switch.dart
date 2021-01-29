@@ -8,7 +8,7 @@ enum MainScreen {
 class _MainSwitch{
   StreamController<MainScreen> _s = StreamController<MainScreen>();
   _MainSwitch() {
-    _s.add(MainScreen.Init);
+    
   }
 
   void screenSwitch(MainScreen screen) {
