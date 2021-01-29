@@ -71,7 +71,11 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: scaffoldBody() // This trailing comma makes auto-formatting nicer for build methods.
+      body: SingleChildScrollView(
+        child : Column(
+          children: [scaffoldBody()]
+        )
+      )// This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
