@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../var/config.dart' as AppConfig;
 
@@ -15,11 +16,12 @@ class CryptoSetView extends StatefulWidget {
 
 class _CryptoSetViewState extends State<CryptoSetView> {
   TextEditingController passwdController;
-
+  TextEditingController passwdCkiController;
 
   @override
   Widget build(BuildContext context){
     passwdController = TextEditingController(text : AppConfig.config.key);
+    passwdCkiController = TextEditingController(text : "");
     return Column(
       children: 
       [
@@ -83,27 +85,66 @@ class _CryptoSetViewState extends State<CryptoSetView> {
     ];
   }
   Widget passwdTxtBox() {
-    return TextField(
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        hintText: 'Crypto Password'
+    return Column(children: [
+      TextField(
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          hintText: 'Password'
+        ),
+        controller: passwdController,
+        autofocus: false,
+        obscureText: true,
       ),
-      controller: passwdController,
-      autofocus: false,
-      obscureText: true,
-    );
+      TextField(
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          hintText: 'Password Check'
+        ),
+        controller: passwdCkiController,
+        autofocus: false,
+        obscureText: true,
+      )
+    ],);
   }
   Widget nextBtn() {
     return RaisedButton(
           onPressed: () {
+            if(passwdController.text == "") {
+              showPasswdEmpty();
+              return;
+            }
+            if(passwdController.text != passwdCkiController.text) {
+              showPasswdNotMatch();
+              return;
+            }
             AppConfig.config.key = passwdController.text;
             widget._router.add(3);
           },
           child : Text("next")
     );
   }
-
-
+  void showPasswdEmpty() {
+    Fluttertoast.showToast(
+        msg: "Empty Password",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.white30,
+        textColor: Colors.black,
+        fontSize: 16.0
+    );
+  }
+  void showPasswdNotMatch() {
+    Fluttertoast.showToast(
+        msg: "Password not Matching",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.white30,
+        textColor: Colors.black,
+        fontSize: 16.0
+    );
+  }
 
 
 
