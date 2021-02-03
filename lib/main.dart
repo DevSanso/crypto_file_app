@@ -8,9 +8,7 @@ import './var/switch.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  MyApp(){
-    sswitch.screenSwitch(MainScreen.Init);
-  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -57,7 +55,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  
+  @override
+  void initState() {
+    super.initState();
+    sswitch.screenSwitch(MainScreen.Init);
+  }
 
   @override
   Widget build(BuildContext context) {
