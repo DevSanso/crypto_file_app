@@ -5,7 +5,7 @@ import 'package:loading_animations/loading_animations.dart';
 
 import './init/intro.dart';
 import './init/crypto_set.dart';
-
+import './init/file_set.dart';
 
 class InitView extends StatefulWidget {
   StreamController<int> routerQueue = StreamController<int>();
@@ -14,13 +14,20 @@ class InitView extends StatefulWidget {
 
   @override
   State<InitView> createState() {
-    routerQueue.add(1);
+    
     return _InitState();
   }
 }
 
 
 class _InitState extends State<InitView> {
+  List<bool> canMove;
+  @override
+  void initState() {
+    super.initState();
+    canMove = [false,false,false,false];
+    widget.routerQueue.add(1);
+  }
   @override
   Widget build(BuildContext context) {
     return Column(children: 
@@ -42,8 +49,11 @@ class _InitState extends State<InitView> {
         res.add(
           Expanded(
             child: OutlineButton(
-              child:Text(i.toString()),
-              onPressed: (){widget.routerQueue.add(i);}
+              child:Text(""),
+              onPressed: (){
+                if(!canMove[i-1])return;
+                widget.routerQueue.add(i);
+              }
             )
           )
         );
@@ -63,6 +73,7 @@ class _InitState extends State<InitView> {
       stream : widget.routerQueue.stream,
       builder: (context,AsyncSnapshot<int> snapshot) {
         //first init time, snapshot is null,first stream add function 1, before wait loading widget
+        
         Widget view = LoadingRotating.square(
           borderColor: Colors.blueGrey,
           borderSize: 3,
@@ -73,15 +84,19 @@ class _InitState extends State<InitView> {
         switch(snapshot.data) {
           case 1:
             view = Intro.setRouter(widget.routerQueue);
+            canMove[0] = true;
             break;
           case 2:
             view = CryptoSetView(widget.routerQueue);
+            canMove[1] = true;
             break;
           case 3:
-            view = Text(snapshot.data.toString());
+            view = FileSetView(widget.routerQueue);
+            canMove[2] = true;
             break;
           case 4:
             view = Text(snapshot.data.toString());
+            canMove[3] = true;
             break;
         }
         return view;
