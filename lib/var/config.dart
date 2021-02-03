@@ -1,3 +1,5 @@
+import 'dart:io';
+
 enum CryptoMode {
   AES_CBC,
   AES_CTR,
@@ -25,8 +27,8 @@ class _Config {
     }
   }
 
-  String srcFilePath;
-  String dstFilePath;
+  File srcFile;
+  String dstDirPath;
 
   
   CryptoMode mode = CryptoMode.AES_GCM;
