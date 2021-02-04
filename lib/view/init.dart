@@ -25,7 +25,7 @@ class _InitState extends State<InitView> {
   @override
   void initState() {
     super.initState();
-    canMove = [false,false,false,false];
+    canMove = [false,false,false];
     widget.routerQueue.add(1);
   }
   @override
@@ -44,7 +44,7 @@ class _InitState extends State<InitView> {
     final genIndex = () {
       var res = List<Widget>();
 
-      for(var i in [1,2,3,4]) {
+      for(var i in [1,2,3]) {
         
         res.add(
           Expanded(
@@ -93,10 +93,6 @@ class _InitState extends State<InitView> {
           case 3:
             view = FileSetView(widget.routerQueue);
             canMove[2] = true;
-            break;
-          case 4:
-            view = Text(snapshot.data.toString());
-            canMove[3] = true;
             break;
         }
         return view;
