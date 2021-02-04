@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../var/config.dart' as AppConfig;
+import '../../var/switch.dart';
 
 class FileSetView extends StatefulWidget {
   StreamSink<int> _router;
@@ -109,7 +110,7 @@ class _FileSetState extends State<FileSetView> {
   Widget nextBtn() {
     return RaisedButton(
           onPressed: () {
-            widget._router.add(4);
+            _showDiglog();
           },
           child : Text("running")
     );
@@ -122,5 +123,22 @@ class _FileSetState extends State<FileSetView> {
   Future<String> openDirDialog() async{
     var result = await FilePicker.platform.getDirectoryPath();
     return result;
+  }
+
+
+  void _showDiglog() {
+    showDialog(
+      context: context,
+      builder :(context) {
+        return AlertDialog(
+          title: Text("Now Processing?"),
+          content: null,
+          actions: [
+            FlatButton(onPressed: (){Navigator.pop(context);}, child: Text("close")),
+            FlatButton(onPressed: (){Navigator.pop(context);
+            sswitch.screenSwitch(MainScreen.Processing);}, child: Text("Next"))
+          ],
+        );
+    });
   }
 }
