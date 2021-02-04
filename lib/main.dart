@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 
-import './view/init.dart';
+import './view/view.dart';
 
 import './var/switch.dart';
 void main() => runApp(MyApp());
