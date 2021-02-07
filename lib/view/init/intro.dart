@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../var/config.dart' show config;
+import '../../var/config.dart' show globalConfig;
 
 
 
@@ -41,11 +41,11 @@ class _IntroState extends State<Intro> {
   Widget _setActionbtn() {
     return MaterialButton(
       onPressed: () {
-        config.switchAction();
+        globalConfig.switchAction();
         setState(() {});
       },
       child: () {
-        if(config.isEncode()) {
+        if(globalConfig.isEncode()) {
           return Text("Encode",style: TextStyle(fontSize: 28));
         }else {
           return Text("Decode",style: TextStyle(fontSize: 28));

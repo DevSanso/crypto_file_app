@@ -45,25 +45,25 @@ class _FileSetState extends State<FileSetView> {
   }
 
   bool checkValue() {
-    return AppConfig.config.srcFile != null && 
-      AppConfig.config.dstDirPath != null;
+    return AppConfig.globalConfig.srcFile != null && 
+      AppConfig.globalConfig.dstDirPath != null;
   }
   void srcBtnEvent() async {
-    AppConfig.config.srcFile = File(await openFileDialog());
+    AppConfig.globalConfig.srcFile = File(await openFileDialog());
     setState(() {});
   }
   void outBtnEvent() async {
-    AppConfig.config.dstDirPath = await openDirDialog();
+    AppConfig.globalConfig.dstDirPath = await openDirDialog();
     setState(() {});
   }
 
   String getSrcFilePath(){
-    if(AppConfig.config.srcFile == null)return "file open";
-    else return AppConfig.config.srcFile.path;
+    if(AppConfig.globalConfig.srcFile == null)return "file open";
+    else return AppConfig.globalConfig.srcFile.path;
   }
   String getDirPath(){
-    if(AppConfig.config.dstDirPath == null)return "dir open";
-    else return AppConfig.config.dstDirPath;
+    if(AppConfig.globalConfig.dstDirPath == null)return "dir open";
+    else return AppConfig.globalConfig.dstDirPath;
   }
   
   Widget selectFilePicker() {
@@ -135,8 +135,10 @@ class _FileSetState extends State<FileSetView> {
           content: null,
           actions: [
             FlatButton(onPressed: (){Navigator.pop(context);}, child: Text("close")),
-            FlatButton(onPressed: (){Navigator.pop(context);
-            sswitch.screenSwitch(MainScreen.Processing);}, child: Text("Next"))
+            FlatButton(onPressed: (){
+                Navigator.pop(context);
+                sswitch.screenSwitch(MainScreen.Processing);},
+              child: Text("Next"))
           ],
         );
     });

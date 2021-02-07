@@ -10,7 +10,7 @@ enum Action {
   Decode
 }
 
-class _Config {
+class Config {
   Action action;
   void switchAction() {
     if(action == Action.Decode) {
@@ -42,4 +42,4 @@ class _Config {
 
 
 
-final _Config config = _Config();
+final Config globalConfig = Config();

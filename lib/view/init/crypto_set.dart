@@ -20,7 +20,7 @@ class _CryptoSetViewState extends State<CryptoSetView> {
 
   @override
   Widget build(BuildContext context){
-    passwdController = TextEditingController(text : AppConfig.config.key);
+    passwdController = TextEditingController(text : AppConfig.globalConfig.key);
     passwdCkiController = TextEditingController(text : "");
     return Column(
       children: 
@@ -50,10 +50,10 @@ class _CryptoSetViewState extends State<CryptoSetView> {
         title : Text("AES CBC"),
         leading : Radio(
           value : AppConfig.CryptoMode.AES_CBC,
-          groupValue: AppConfig.config.mode,
+          groupValue: AppConfig.globalConfig.mode,
           onChanged: (AppConfig.CryptoMode value) {
             setState(() {
-              AppConfig.config.mode = value;
+              AppConfig.globalConfig.mode = value;
             });
           },
         )
@@ -62,10 +62,10 @@ class _CryptoSetViewState extends State<CryptoSetView> {
         title : Text("AES CTR"),
         leading : Radio(
           value : AppConfig.CryptoMode.AES_CTR,
-          groupValue: AppConfig.config.mode,
+          groupValue: AppConfig.globalConfig.mode,
           onChanged: (AppConfig.CryptoMode value) {
             setState(() {
-              AppConfig.config.mode = value;
+              AppConfig.globalConfig.mode = value;
             });
           },
         )
@@ -74,10 +74,10 @@ class _CryptoSetViewState extends State<CryptoSetView> {
         title : Text("AES GCM"),
         leading : Radio(
           value : AppConfig.CryptoMode.AES_GCM,
-          groupValue: AppConfig.config.mode,
+          groupValue: AppConfig.globalConfig.mode,
           onChanged: (AppConfig.CryptoMode value) {
             setState(() {
-              AppConfig.config.mode = value;
+              AppConfig.globalConfig.mode = value;
             });
           },
         )
@@ -117,7 +117,7 @@ class _CryptoSetViewState extends State<CryptoSetView> {
               showPasswdNotMatch();
               return;
             }
-            AppConfig.config.key = passwdController.text;
+            AppConfig.globalConfig.key = passwdController.text;
             widget._router.add(3);
           },
           child : Text("next")
