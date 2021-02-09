@@ -21,7 +21,7 @@ class _CryptoSetViewState extends State<CryptoSetView> {
   @override
   Widget build(BuildContext context){
     passwdController = TextEditingController(text : AppConfig.globalConfig.key);
-    passwdCkiController = TextEditingController(text : "");
+    passwdCkiController = TextEditingController(text : AppConfig.globalConfig.key);
     return Column(
       children: 
       [
