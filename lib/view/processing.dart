@@ -38,9 +38,9 @@ class FileHeader {
   AppConfig.CryptoMode mode;
   List<int> pbkdf2;
   Nonce nonce;
-  int dataPos;
+  int blockCount;
 
-  FileHeader.init(this.mode,this.pbkdf2,this.nonce,this.dataPos);
+  FileHeader.init(this.mode,this.pbkdf2,this.nonce,this.blockCount);
 }
 
 
@@ -54,10 +54,10 @@ Uint8List makePbkdf2Bytes(){
     return pbkdf2.deriveBitsSync(key,nonce: null);
 }
 
-CipherWithAppendedMac makeCipher() {
+CipherWithAppendedMac makeCipher(AppConfig.CryptoMode mode) {
     CipherWithAppendedMac mac;
     
-    switch (AppConfig.globalConfig.mode) {
+    switch (mode) {
       case AppConfig.CryptoMode.AES_CBC:
       mac = CipherWithAppendedMac(aesCbc,Hmac(sha256));
       break;
@@ -106,9 +106,14 @@ abstract class _Process {
     f.writeByteSync(flag);
     f.writeFromSync(header.pbkdf2);
     f.writeFromSync(header.nonce.bytes);
+    
+    var lenData = ByteData(4);
+    lenData.setUint32(0, header.blockCount);
+    f.writeFromSync(lenData.buffer.asUint8List());
+    
   }
   FileHeader readFileHeader(RandomAccessFile f) {
-    var current = f.positionSync();
+    
     AppConfig.CryptoMode mode;
     f.setPositionSync(0);
     var flag = f.readByteSync();
@@ -130,9 +135,12 @@ abstract class _Process {
       mode = AppConfig.CryptoMode.AES_GCM;
       break;
     }
-    var dataPos = f.positionSync();
-    f.setPosition(current);
-    return FileHeader.init(mode,buf,nonce,dataPos);
+    var blockCountBuf = Uint8List(4);
+    f.readIntoSync(blockCountBuf);
+    var count = ByteData.view(blockCountBuf.buffer).getUint32(0);
+   
+    
+    return FileHeader.init(mode,buf,nonce,count);
   }
 }
 
@@ -149,7 +157,7 @@ class _Encode extends _Process{
       p.basename(accessSrc.path),
       outFileExt));
     
-    var accessDst = dstF.openSync();
+    var accessDst = dstF.openSync(mode: FileMode.write);
     
     
     var controller = new StreamController<int>();
@@ -157,7 +165,7 @@ class _Encode extends _Process{
     var index = 0;
     var readLen = 0;
 
-    var cipher = makeCipher();
+    var cipher = makeCipher(AppConfig.globalConfig.mode);
     var secretKey = SecretKey(makeDigest().bytes);
     var nonce = cipher.newNonce();
 
@@ -165,32 +173,66 @@ class _Encode extends _Process{
       AppConfig.globalConfig.mode,
       makePbkdf2Bytes(),
       nonce,
-      0
+      maxL
     );
     writeFileHeader(accessDst, fileHeader);
+    
+    () async {
+      try {
+        while(maxL >= index)
+        {
+          readLen = accessSrc.readIntoSync(buffer,index,index+packetSize-1);
+          controller.add(readLen);
+          
+          cipher.encryptSync(buffer, secretKey: secretKey, nonce: nonce);
+          accessDst.writeFromSync(buffer);
+            
+          buffer.clear();
+          index++;
+        }
+      }finally {
+        accessSrc.close();
+        accessDst.close();
+        controller.close();
+      }
+    }();
 
-    while(maxL > index)
-    {
-      readLen = accessSrc.readIntoSync(buffer,index,index+packetSize-1);
-      
-      if(readLen != packetSize)break;
-      
-      
-      cipher.encryptSync(buffer, secretKey: secretKey, nonce: nonce);
-      
-      accessDst.writeFromSync(buffer);
-      buffer.clear();
-      index += readLen;
-    }
-
-    accessSrc.close();
-    accessDst.close();
+    return controller.stream;
   }
-
+  
 }
 
 class _Decode extends _Process{
   _Decode(AppConfig.Config config) : super(config);
   @override
-  Stream<int> running(){}
+  Stream<int> running(){
+    var accessSrc = config.srcFile.openSync();
+    var header = readFileHeader(accessSrc);
+
+    if(header.pbkdf2 != makePbkdf2Bytes()) {
+      throw Exception("not matching passwd");
+    }
+
+
+
+    var dstF = File(p.join(
+      config.dstDirPath,
+      p.basename(accessSrc.path)));
+    
+
+
+    var accessDst = dstF.openSync();
+    
+    
+
+    var controller = new StreamController<int>();
+    var buffer = new List<int>();
+    var index = 0;
+    var readLen = 0;
+
+    
+    var cipher = makeCipher(header.mode);
+    var secretKey = SecretKey(makeDigest().bytes);
+    
+  }
 }
