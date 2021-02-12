@@ -179,18 +179,22 @@ class _Encode extends _Process{
     
     () async {
       try {
-        while(maxL >= index)
+        while(maxL <= index)
         {
-          readLen = accessSrc.readIntoSync(buffer,index,index+packetSize-1);
-          controller.add(readLen);
+          accessSrc.readIntoSync(buffer);
+          controller.add(index);
           
-          cipher.encryptSync(buffer, secretKey: secretKey, nonce: nonce);
+          buffer = cipher.encryptSync(buffer, secretKey: secretKey, nonce: nonce);
           accessDst.writeFromSync(buffer);
             
           buffer.clear();
           index++;
         }
-      }finally {
+      }
+      catch(e) {
+        throw e;
+      }
+      finally {
         accessSrc.close();
         accessDst.close();
         controller.close();
@@ -233,6 +237,25 @@ class _Decode extends _Process{
     
     var cipher = makeCipher(header.mode);
     var secretKey = SecretKey(makeDigest().bytes);
-    
+    () async {
+      try{
+        while(header.blockCount >= index){
+          accessSrc.readIntoSync(buffer);
+          buffer = cipher.decryptSync(buffer, secretKey: secretKey, nonce: header.nonce);
+          accessDst.writeFromSync(buffer);
+            
+          buffer.clear();
+          index++;
+        }
+      }catch(e){
+        throw e;
+      }finally{
+          controller.close();
+          accessSrc.close();
+          accessDst.close();
+      }
+    }();
+    return controller.stream;
   }
+  
 }
