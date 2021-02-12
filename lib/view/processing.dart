@@ -158,12 +158,9 @@ class _Encode extends _Process{
       outFileExt));
     
     var accessDst = dstF.openSync(mode: FileMode.write);
-    
-    
     var controller = new StreamController<int>();
-    var buffer = new List<int>();
-    var index = 0;
-    var readLen = 0;
+    
+
 
     var cipher = makeCipher(AppConfig.globalConfig.mode);
     var secretKey = SecretKey(makeDigest().bytes);
@@ -178,16 +175,17 @@ class _Encode extends _Process{
     writeFileHeader(accessDst, fileHeader);
     
     () async {
+      var input = new List<int>(64);
+      var buffer = new List<int>(64);
+      
+      var index = 0;
       try {
         while(maxL <= index)
         {
-          accessSrc.readIntoSync(buffer);
+          accessSrc.readIntoSync(input);
           controller.add(index);
-          
-          buffer = cipher.encryptSync(buffer, secretKey: secretKey, nonce: nonce);
+          cipher.decryptToBuffer(input, buffer: buffer, secretKey: secretKey, nonce: nonce);
           accessDst.writeFromSync(buffer);
-            
-          buffer.clear();
           index++;
         }
       }
@@ -217,34 +215,24 @@ class _Decode extends _Process{
       throw Exception("not matching passwd");
     }
 
-
-
     var dstF = File(p.join(
       config.dstDirPath,
       p.basename(accessSrc.path)));
-    
-
 
     var accessDst = dstF.openSync();
-    
-    
-
     var controller = new StreamController<int>();
-    var buffer = new List<int>();
-    var index = 0;
-    var readLen = 0;
 
-    
     var cipher = makeCipher(header.mode);
     var secretKey = SecretKey(makeDigest().bytes);
     () async {
+      var input = new List<int>(64);
+      var buffer = new List<int>(64);
+      var index = 0;
       try{
         while(header.blockCount >= index){
-          accessSrc.readIntoSync(buffer);
-          buffer = cipher.decryptSync(buffer, secretKey: secretKey, nonce: header.nonce);
+          accessSrc.readIntoSync(input);
+          cipher.decryptToBuffer(input, buffer: buffer, secretKey: secretKey, nonce: header.nonce);
           accessDst.writeFromSync(buffer);
-            
-          buffer.clear();
           index++;
         }
       }catch(e){
