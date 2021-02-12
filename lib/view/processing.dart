@@ -182,8 +182,8 @@ class _Encode extends _Process{
       try {
         while(maxL <= index)
         {
-          accessSrc.readIntoSync(input);
           controller.add(index);
+          accessSrc.readIntoSync(input);
           cipher.decryptToBuffer(input, buffer: buffer, secretKey: secretKey, nonce: nonce);
           accessDst.writeFromSync(buffer);
           index++;
@@ -230,6 +230,7 @@ class _Decode extends _Process{
       var index = 0;
       try{
         while(header.blockCount >= index){
+          controller.add(index);
           accessSrc.readIntoSync(input);
           cipher.decryptToBuffer(input, buffer: buffer, secretKey: secretKey, nonce: header.nonce);
           accessDst.writeFromSync(buffer);
