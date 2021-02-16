@@ -7,6 +7,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart' as hash;
 import 'package:path/path.dart' as p;
+import 'package:loading_animations/loading_animations.dart';
 
 import '../var/config.dart' as AppConfig;
 import '../var/switch.dart';
@@ -22,12 +23,57 @@ class ProcessingView extends StatefulWidget {
 
 
 class _State extends State<ProcessingView> {
+  _Process _process = null;
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    
+    if(AppConfig.Action.Decode == AppConfig.globalConfig.action) {
+      _process = _Decode(AppConfig.globalConfig);
+    }else {
+      _process = _Encode(AppConfig.globalConfig);
+    }
+
+    
   }
 
+  @override
+  Widget build(BuildContext context) {
+    var loadingCounter = _process.running();
+    // TODO: implement build
+    return Column(
+      children: 
+      [
+        Container(
+          margin: EdgeInsets.only(top: 50),
+          child: loading()
+        ),
+        Container(
+          margin : EdgeInsets.only(top: 30),
+          child: Center(child: outputLog(loadingCounter),)
+        )
+      ],
+    );
+  }
+
+  Widget loading() {
+    return Center(
+      child: LoadingBouncingGrid.square(
+        borderColor: Colors.blueGrey,
+        borderSize: 3,
+        size : 30,
+        duration: Duration(milliseconds: 500),
+      ),
+    );
+  }
+  StreamBuilder<int> outputLog(Stream<int> loadingCounter) {
+    return StreamBuilder<int>(stream: loadingCounter,
+        builder: (BuildContext context,AsyncSnapshot<int> snapshot) {
+          Text("done block : $snapshot",style: TextStyle(fontSize: 24),);
+        }
+    );
+  }
 
 }
 
@@ -81,6 +127,7 @@ abstract class _Process {
   _Process(this.config);
 
   Stream<int> running();
+
   int calcPacketCount(RandomAccessFile f) {
     if(f.lengthSync() % packetSize != 0) {
       return f.lengthSync() + 1;
@@ -162,12 +209,12 @@ class _Encode extends _Process{
     
 
 
-    var cipher = makeCipher(AppConfig.globalConfig.mode);
+    var cipher = makeCipher(config.mode);
     var secretKey = SecretKey(makeDigest().bytes);
     var nonce = cipher.newNonce();
 
     var fileHeader = FileHeader.init(
-      AppConfig.globalConfig.mode,
+      config.mode,
       makePbkdf2Bytes(),
       nonce,
       maxL
