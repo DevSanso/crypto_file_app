@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart' as hash;
 import 'package:path/path.dart' as p;
 import 'package:loading_animations/loading_animations.dart';
@@ -67,37 +68,37 @@ class _State extends State<ProcessingView> {
       ),
     );
   }
-  StreamBuilder<int> outputLog(Stream<int> loadingCounter) {
-    return StreamBuilder<int>(stream: loadingCounter,
-        builder: (BuildContext context,AsyncSnapshot<int> snapshot) {
-          Text("done block : $snapshot",style: TextStyle(fontSize: 24),);
+  StreamBuilder<String> outputLog(Stream<String> loadingCounter) {
+    return StreamBuilder<String>(stream: loadingCounter,
+        builder: (BuildContext context,AsyncSnapshot<String> snapshot) {
+          return Text("$snapshot",style: TextStyle(fontSize: 24),);
         }
     );
   }
 
 }
 
-const outFileExt= ".out.cryp";
-const packetSize = 64;
+
+
 
 class FileHeader {
   AppConfig.CryptoMode mode;
   List<int> pbkdf2;
   Nonce nonce;
-  int blockCount;
+  int dataLen;
 
-  FileHeader.init(this.mode,this.pbkdf2,this.nonce,this.blockCount);
+  FileHeader.init(this.mode,this.pbkdf2,this.nonce,this.dataLen);
 }
 
 
-Uint8List makePbkdf2Bytes(){
+Uint8List makePbkdf2Bytes(Nonce nonce){
     final pbkdf2 = Pbkdf2(
       macAlgorithm: Hmac(sha256),
       iterations: 10000,
       bits: 256
     );
     var key = utf8.encode(AppConfig.globalConfig.key);
-    return pbkdf2.deriveBitsSync(key,nonce: null);
+    return pbkdf2.deriveBitsSync(key,nonce: nonce);
 }
 
 CipherWithAppendedMac makeCipher(AppConfig.CryptoMode mode) {
@@ -126,15 +127,8 @@ abstract class _Process {
 
   _Process(this.config);
 
-  Stream<int> running();
+  Stream<String> running();
 
-  int calcPacketCount(RandomAccessFile f) {
-    if(f.lengthSync() % packetSize != 0) {
-      return f.lengthSync() + 1;
-    } 
-    return f.lengthSync();
-  }
-  
 
   void writeFileHeader(RandomAccessFile f,FileHeader header) {
     f.setPositionSync(0);
@@ -153,19 +147,19 @@ abstract class _Process {
     f.writeByteSync(flag);
     f.writeFromSync(header.pbkdf2);
     f.writeFromSync(header.nonce.bytes);
-    
     var lenData = ByteData(4);
-    lenData.setUint32(0, header.blockCount);
+    lenData.setUint32(0, header.dataLen);
     f.writeFromSync(lenData.buffer.asUint8List());
     
   }
+
   FileHeader readFileHeader(RandomAccessFile f) {
     
     AppConfig.CryptoMode mode;
     f.setPositionSync(0);
     var flag = f.readByteSync();
-    var buf = List<int>(64);
-    var nonceBuf = List<int>(64);
+    var buf = List<int>(32);
+    var nonceBuf = List<int>(16);
     f.readIntoSync(buf);
     f.readIntoSync(nonceBuf);
 
@@ -182,30 +176,30 @@ abstract class _Process {
       mode = AppConfig.CryptoMode.AES_GCM;
       break;
     }
+  
     var blockCountBuf = Uint8List(4);
     f.readIntoSync(blockCountBuf);
     var count = ByteData.view(blockCountBuf.buffer).getUint32(0);
-   
     
     return FileHeader.init(mode,buf,nonce,count);
-  }
+  }  
 }
+  
 
 class _Encode extends _Process{
   _Encode(AppConfig.Config config) : super(config);
 
   @override
-  Stream<int> running() {
+  Stream<String> running() {
     var accessSrc = config.srcFile.openSync();
-    var maxL = calcPacketCount(accessSrc);
+
     
     var dstF = File(p.join(
       config.dstDirPath,
-      p.basename(accessSrc.path),
-      outFileExt));
+      p.basename(accessSrc.path)));
     
     var accessDst = dstF.openSync(mode: FileMode.write);
-    var controller = new StreamController<int>();
+    var controller = new StreamController<String>();
     
 
 
@@ -215,26 +209,30 @@ class _Encode extends _Process{
 
     var fileHeader = FileHeader.init(
       config.mode,
-      makePbkdf2Bytes(),
+      makePbkdf2Bytes(nonce),
       nonce,
-      maxL
+      accessSrc.lengthSync()
     );
     writeFileHeader(accessDst, fileHeader);
     
     () async {
-      var input = new List<int>(64);
-      var buffer = new List<int>(64);
-      
-      var index = 0;
-      try {
-        while(maxL <= index)
-        {
-          controller.add(index);
-          accessSrc.readIntoSync(input);
-          cipher.decryptToBuffer(input, buffer: buffer, secretKey: secretKey, nonce: nonce);
-          accessDst.writeFromSync(buffer);
-          index++;
+      var input = new List<int>(() {
+        if(fileHeader.dataLen <= 32) {
+          return 32;
+        }else {
+          return fileHeader.dataLen;
         }
+      }());
+      
+      
+      
+      try {
+        controller.add("reading file");
+        accessSrc.readIntoSync(input);
+        controller.add("encrpyto...");
+        var buffer = cipher.encryptSync(input, secretKey: secretKey, nonce: nonce);
+        controller.add("writing...");
+        accessDst.writeFromSync(buffer);
       }
       catch(e) {
         throw e;
@@ -254,11 +252,12 @@ class _Encode extends _Process{
 class _Decode extends _Process{
   _Decode(AppConfig.Config config) : super(config);
   @override
-  Stream<int> running(){
+  Stream<String> running(){
     var accessSrc = config.srcFile.openSync();
     var header = readFileHeader(accessSrc);
 
-    if(header.pbkdf2 != makePbkdf2Bytes()) {
+    
+    if(listEquals(header.pbkdf2, makePbkdf2Bytes(header.nonce))) {
       throw Exception("not matching passwd");
     }
 
@@ -267,22 +266,26 @@ class _Decode extends _Process{
       p.basename(accessSrc.path)));
 
     var accessDst = dstF.openSync();
-    var controller = new StreamController<int>();
+    var controller = new StreamController<String>();
 
     var cipher = makeCipher(header.mode);
     var secretKey = SecretKey(makeDigest().bytes);
     () async {
-      var input = new List<int>(64);
-      var buffer = new List<int>(64);
-      var index = 0;
-      try{
-        while(header.blockCount >= index){
-          controller.add(index);
-          accessSrc.readIntoSync(input);
-          cipher.decryptToBuffer(input, buffer: buffer, secretKey: secretKey, nonce: header.nonce);
-          accessDst.writeFromSync(buffer);
-          index++;
+      var input = new List<int>(() {
+        if(header.dataLen <= 32) {
+          return 32;
+        }else {
+          return header.dataLen;
         }
+      }());
+
+      try{
+        controller.add("reading file");
+        accessSrc.readIntoSync(input);
+        controller.add("decrpyto...");
+        var buffer = cipher.decryptSync(input , secretKey: secretKey, nonce: header.nonce);
+        controller.add("writing...");
+        accessDst.writeFromSync(List<int>.from(buffer.take(header.dataLen)));
       }catch(e){
         throw e;
       }finally{
@@ -293,5 +296,4 @@ class _Decode extends _Process{
     }();
     return controller.stream;
   }
-  
 }
