@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return InitView();
       }
       else {
-        return ProcessingView();
+        //return ProcessingView();
       }
     });
   }
